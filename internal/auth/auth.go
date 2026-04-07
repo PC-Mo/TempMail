@@ -59,6 +59,7 @@ type OAuthConfig struct {
 	RedirectURI   string // e.g. https://mail.example.com/auth/callback
 	PostLogoutURI string // where to redirect after logout (default: BASE_URL or "/")
 	EndSessionURL string // RP-initiated logout endpoint (optional, e.g. https://auth.example.com/logout)
+}
 
 var oauthCfg OAuthConfig
 
