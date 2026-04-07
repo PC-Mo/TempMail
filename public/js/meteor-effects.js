@@ -183,7 +183,7 @@ const ICONS = {
 // 三态顺序：dark → light → auto → dark
 const THEME_CYCLE = ['dark', 'light', 'auto'];
 
-// 完整的主题切换功能（兼容 tempmail:theme 统一字段，支持 light/dark/auto）
+// 完整的主题切换功能（兼容 pctag:theme 统一字段，支持 light/dark/auto）
 function setupTheme() {
   const darkToggle = document.getElementById('darkToggle');
   if (!darkToggle) return;
@@ -215,18 +215,18 @@ function setupTheme() {
   }
 
   function setTheme(theme) {
-    localStorage.setItem('tempmail:theme', theme);
+    localStorage.setItem('pctag:theme', theme);
     applyTheme(theme);
   }
 
   // 监听系统主题变化（auto 模式下生效）
   mediaQuery.addEventListener('change', () => {
-    const saved = localStorage.getItem('tempmail:theme') || 'auto';
+    const saved = localStorage.getItem('pctag:theme') || 'auto';
     if (saved === 'auto') applyTheme('auto');
   });
 
-  // 初始化：读 tempmail:theme，兼容旧 theme 字段
-  const saved = localStorage.getItem('tempmail:theme')
+  // 初始化：读 pctag:theme，兼容旧 theme 字段
+  const saved = localStorage.getItem('pctag:theme')
     || (localStorage.getItem('theme') === 'light' ? 'light'
       : localStorage.getItem('theme') === 'dark' ? 'dark' : null)
     || 'auto';
@@ -234,7 +234,7 @@ function setupTheme() {
 
   // 点击三态循环切换
   darkToggle.addEventListener('click', () => {
-    const current = localStorage.getItem('tempmail:theme') || 'auto';
+    const current = localStorage.getItem('pctag:theme') || 'auto';
     const idx = THEME_CYCLE.indexOf(current);
     const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
     setTheme(next);
