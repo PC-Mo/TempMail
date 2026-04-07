@@ -97,7 +97,10 @@ func handleHealth(w http.ResponseWriter, _ *http.Request) {
 // --- API Config ---
 
 func handleAPIConfig(w http.ResponseWriter, _ *http.Request) {
-	jsonOK(w, map[string]string{"domain": config.Get().GetDomain()})
+	jsonOK(w, map[string]interface{}{
+		"domain":       config.Get().GetDomain(),
+		"oidc_enabled": auth.IsEnabled(),
+	})
 }
 
 // --- Mails API ---
@@ -324,9 +327,11 @@ func handleAdminLogin(w http.ResponseWriter, r *http.Request) {
 
 func handleAdminLogout(w http.ResponseWriter, r *http.Request) {
 	if auth.IsEnabled() {
-		http.Redirect(w, r, "/auth/logout", http.StatusFound)
+		// OIDC mode: delegate to auth.HandleLogout which hits end_session_endpoint
+		auth.HandleLogout(w, r)
 		return
 	}
+	// Password mode: only clear the admin session, redirect to "/"
 	sess, err := sessionStore().Get(r, "admin")
 	if err == nil {
 		sess.Options.MaxAge = -1
@@ -334,7 +339,7 @@ func handleAdminLogout(w http.ResponseWriter, r *http.Request) {
 			log.Printf("session save on logout: %v", err)
 		}
 	}
-	http.Redirect(w, r, "/login.html", http.StatusFound)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func requireAdmin(w http.ResponseWriter, r *http.Request) bool {

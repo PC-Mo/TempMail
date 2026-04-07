@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - TempMail</title>
+  <!-- 防止主题闪烁：在 CSS 加载前立即应用已存主题 -->
+  <script>(function(){var t=localStorage.getItem('pctag:theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.classList.toggle('dark',d);})()</script>
   <link rel="stylesheet" href="/css/tailwind.min.css">
 </head>
 <body class="galaxy-bg text-gray-100 antialiased">
@@ -316,17 +318,8 @@
       window.location.href = '/admin/logout';
     });
 
-    /* ---- 主题切换 ---- */
-    const darkToggle = document.getElementById('darkToggle');
-    if (darkToggle && typeof setupTheme === 'function') setupTheme();
-    if (darkToggle) {
-      darkToggle.addEventListener('click', () => {
-        const html = document.documentElement;
-        html.classList.toggle('dark');
-        html.classList.toggle('light');
-        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
-      });
-    }
+    /* ---- 主题切换：完全交给 meteor-effects.js 的 setupTheme() ---- */
+    if (typeof setupTheme === 'function') setupTheme();
 
     /* ---- 初始化 ---- */
     initTabs();
