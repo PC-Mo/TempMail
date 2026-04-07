@@ -52,13 +52,13 @@ func getStore() *sessions.CookieStore {
 
 // OAuthConfig holds OIDC/OAuth2 provider settings, read from env/config at startup.
 type OAuthConfig struct {
-	Enabled      bool
-	IssuerURL    string // e.g. https://auth.example.com
-	ClientID     string
-	ClientSecret string
-	RedirectURI  string // e.g. https://mail.example.com/auth/callback
-	PostLogoutURI string // where to redirect after OIDC logout (default: BASE_URL or "/")
-}
+	Enabled       bool
+	IssuerURL     string // e.g. https://auth.example.com
+	ClientID      string
+	ClientSecret  string
+	RedirectURI   string // e.g. https://mail.example.com/auth/callback
+	PostLogoutURI string // where to redirect after logout (default: BASE_URL or "/")
+	EndSessionURL string // RP-initiated logout endpoint (optional, e.g. https://auth.example.com/logout)
 
 var oauthCfg OAuthConfig
 
@@ -72,6 +72,7 @@ func Init() {
 		ClientID:     getEnv("OIDC_CLIENT_ID"),
 		ClientSecret: getEnv("OIDC_CLIENT_SECRET"),
 		RedirectURI:  getEnv("OIDC_REDIRECT_URI"),
+		EndSessionURL: getEnv("OIDC_END_SESSION_URL"), // optional RP-initiated logout
 	}
 	// PostLogoutURI: OIDC_POST_LOGOUT_URI → BASE_URL → "/"
 	if v := getEnv("OIDC_POST_LOGOUT_URI"); v != "" {
@@ -234,27 +235,27 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, returnTo, http.StatusFound)
 }
 
-// HandleLogout clears the auth session.
-// In OIDC mode, redirects to the provider's end_session_endpoint so the
-// IdP session is also invalidated, then back to PostLogoutURI (default: BASE_URL or "/").
-// In password mode, just clears the session and redirects to "/".
+// HandleLogout clears the local auth session and redirects to PostLogoutURI (default "/").
+// Note: this does NOT invalidate the IdP session. If the IdP supports
+// RP-initiated logout (end_session_endpoint), set OIDC_END_SESSION_URL to
+// that endpoint; users will be redirected there after local session is cleared.
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	sess, _ := getStore().Get(r, sessionName)
 	sess.Options.MaxAge = -1
 	_ = sess.Save(r, w)
 
-	if oauthCfg.Enabled {
-		// Authelia end_session endpoint
-		endSession := fmt.Sprintf(
-			"%s/api/oidc/end-session?post_logout_redirect_uri=%s&client_id=%s",
-			oauthCfg.IssuerURL,
+	// If provider supports RP-initiated logout, redirect there
+	if oauthCfg.Enabled && oauthCfg.EndSessionURL != "" {
+		target := fmt.Sprintf(
+			"%s?post_logout_redirect_uri=%s&client_id=%s",
+			oauthCfg.EndSessionURL,
 			url.QueryEscape(oauthCfg.PostLogoutURI),
 			url.QueryEscape(oauthCfg.ClientID),
 		)
-		http.Redirect(w, r, endSession, http.StatusFound)
+		http.Redirect(w, r, target, http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, oauthCfg.PostLogoutURI, http.StatusFound)
 }
 
 // --- token exchange ---
