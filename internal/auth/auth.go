@@ -227,6 +227,7 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	authSess.Values["username"] = userInfo.Username
 	authSess.Values["groups"] = strings.Join(userInfo.Groups, ",")
 	authSess.Values["at"] = time.Now().Unix()
+	log.Printf("auth: login user=%s groups=%v", userInfo.Username, userInfo.Groups)
 	if err := authSess.Save(r, w); err != nil {
 		log.Printf("auth: session save error: %v", err)
 		http.Error(w, "session save failed", http.StatusInternalServerError)
