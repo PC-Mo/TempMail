@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - TempMail</title>
+  <link rel="stylesheet" href="/css/tailwind.min.css">
+</head>
+<body class="galaxy-bg text-gray-100 antialiased">
+  <div id="stars-container"></div>
+  <div class="meteor-container" id="meteor-container"></div>
+
+  <div id="app" class="min-h-screen flex flex-col relative z-10">
+
+    <!-- ===== 登录视图（仅密码模式下未登录时显示）===== -->
+    <div id="view-login" class="hidden flex-1 flex items-center justify-center px-4">
+      <div class="glass-card w-full max-w-sm p-8">
+        <div class="flex items-center justify-center mb-8">
+          <svg class="w-10 h-10 mr-3" style="color:var(--primary)" viewBox="0 0 24 24" fill="none">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M18 7L14 14L8 9L6 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="text-2xl font-bold brand-font" style="color:var(--text-primary)">TempMail</span>
+        </div>
+        <h2 class="text-center text-lg font-semibold mb-6" style="color:var(--text-secondary)">管理员登录</h2>
+        <form id="login-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" style="color:var(--text-secondary)">用户名</label>
+            <input id="login-user" type="text" autocomplete="username"
+              class="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--input-text)">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" style="color:var(--text-secondary)">密码</label>
+            <input id="login-pass" type="password" autocomplete="current-password"
+              class="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--input-text)">
+          </div>
+          <div id="login-error" class="hidden text-sm text-red-400 text-center py-1"></div>
+          <button type="submit"
+            class="w-full py-3 rounded-xl font-medium transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            style="background-color:var(--primary);color:white">
+            登录
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== 无权限视图 ===== -->
+    <div id="view-forbidden" class="hidden flex-1 flex items-center justify-center px-4">
+      <div class="text-center">
+        <svg class="w-20 h-20 mx-auto mb-4 opacity-30" style="color:var(--primary)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+        </svg>
+        <h2 class="text-xl font-semibold mb-2" style="color:var(--text-primary)">无访问权限</h2>
+        <p class="text-sm" style="color:var(--text-tertiary)">您的账户不在管理员组内</p>
+        <a href="/" class="mt-6 inline-block px-5 py-2 rounded-xl text-sm font-medium transition hover:opacity-90"
+          style="background-color:var(--button-bg);color:var(--button-text)">返回首页</a>
+      </div>
+    </div>
+
+    <!-- ===== 主管理视图 ===== -->
+    <div id="view-admin" class="hidden flex-col flex-1">
+
+      <!-- Header -->
+      <header class="sticky top-0 z-30 backdrop-filter backdrop-blur-lg w-full" style="background:var(--header-bg);border-bottom:1px solid var(--header-border)">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+          <div class="flex justify-between items-center py-3 md:py-4">
+            <a href="/" class="flex items-center" aria-label="TempMail">
+              <svg class="w-8 h-8" style="color:var(--primary)" viewBox="0 0 24 24" fill="none">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M18 7L14 14L8 9L6 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="ml-2 text-xl font-bold brand-font" style="color:var(--text-primary)">TempMail 管理后台</span>
+            </a>
+            <nav class="flex items-center space-x-2">
+              <button id="darkToggle" class="p-2 rounded-full transition focus:outline-none hover:opacity-80"
+                style="background-color:var(--button-bg)" title="切换主题">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color:var(--button-text)" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                </svg>
+              </button>
+              <button id="logout-btn"
+                class="font-medium px-3 py-2 rounded-md transition text-sm hover:opacity-80"
+                style="color:var(--text-secondary)">登出</button>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <!-- Body -->
+      <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <div class="flex flex-col md:flex-row gap-8">
+
+          <!-- 左侧菜单 -->
+          <aside class="w-full md:w-1/4">
+            <div class="glass-card p-4">
+              <nav class="space-y-1" id="admin-nav">
+                <button data-tab="general"
+                  class="admin-tab w-full text-left flex items-center px-3 py-2 text-sm font-medium rounded-md transition active-menu">
+                  <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  常规设置
+                </button>
+                <button data-tab="security"
+                  class="admin-tab w-full text-left flex items-center px-3 py-2 text-sm font-medium rounded-md transition">
+                  <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  安全设置
+                </button>
+                <!-- 账户设置仅密码模式显示 -->
+                <button data-tab="account" id="tab-account"
+                  class="admin-tab w-full text-left flex items-center px-3 py-2 text-sm font-medium rounded-md transition hidden">
+                  <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  账户设置
+                </button>
+              </nav>
+            </div>
+          </aside>
+
+          <!-- 右侧内容 -->
+          <div class="w-full md:w-3/4">
+            <form id="admin-form">
+
+              <!-- 常规设置 -->
+              <div id="tab-general" class="admin-content glass-card p-6 sm:p-8">
+                <h2 class="text-xl font-bold mb-6" style="color:var(--text-primary)">常规设置</h2>
+                <div class="space-y-6">
+                  <div>
+                    <label for="mailExpireMinutes" class="block text-sm font-medium mb-1" style="color:var(--text-secondary)">邮件保留时长（分钟）</label>
+                    <input type="number" id="mailExpireMinutes" name="mailExpireMinutes" min="1"
+                      class="block w-full md:w-1/2 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--input-text)">
+                  </div>
+                  <div>
+                    <label for="maxMails" class="block text-sm font-medium mb-1" style="color:var(--text-secondary)">邮箱最大邮件数</label>
+                    <input type="number" id="maxMails" name="maxMails" min="1"
+                      class="block w-full md:w-1/2 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--input-text)">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 安全设置 -->
+              <div id="tab-security" class="admin-content glass-card p-6 sm:p-8 hidden">
+                <h2 class="text-xl font-bold mb-6" style="color:var(--text-primary)">安全设置</h2>
+                <div>
+                  <label for="forbiddenPrefixes" class="block text-sm font-medium mb-1" style="color:var(--text-secondary)">禁用邮箱前缀（每行一个）</label>
+                  <textarea id="forbiddenPrefixes" name="forbiddenPrefixes" rows="8"
+                    class="block w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--input-text)"></textarea>
+                </div>
+              </div>
+
+              <!-- 账户设置（仅密码模式） -->
+              <div id="tab-account-content" class="admin-content glass-card p-6 sm:p-8 hidden">
+                <h2 class="text-xl font-bold mb-6" style="color:var(--text-primary)">账户设置</h2>
+                <div class="space-y-6">
+                  <div>
+                    <label for="adminUser" class="block text-sm font-medium mb-1" style="color:var(--text-secondary)">管理员用户名</label>
+                    <input type="text" id="adminUser" name="adminUser"
+                      class="block w-full md:w-1/2 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--input-text)">
+                  </div>
+                  <div>
+                    <label for="adminPassword" class="block text-sm font-medium mb-1" style="color:var(--text-secondary)">新密码（留空则不修改）</label>
+                    <input type="password" id="adminPassword" name="adminPassword" placeholder="输入新密码"
+                      class="block w-full md:w-1/2 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--input-text)">
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-8 text-right">
+                <button type="submit"
+                  class="px-6 py-3 rounded-xl font-medium transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  style="background-color:var(--primary);color:white">
+                  保存所有设置
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div><!-- /view-admin -->
+
+  </div><!-- /app -->
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed top-6 right-6 z-50 py-2 px-4 rounded-lg shadow-lg text-white text-sm font-medium"></div>
+
+  <script src="/js/meteor-effects.js"></script>
+  <script src="/js/config.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    /* ---- 视图切换 ---- */
+    function showView(name) {
+      ['login', 'forbidden', 'admin'].forEach(v => {
+        const el = document.getElementById('view-' + v);
+        if (v === name) {
+          el.classList.remove('hidden');
+          el.classList.add('flex');
+        } else {
+          el.classList.add('hidden');
+          el.classList.remove('flex');
+        }
+      });
+    }
+
+    /* ---- Tab 切换 ---- */
+    function initTabs() {
+      const tabs = document.querySelectorAll('.admin-tab');
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.tab;
+          tabs.forEach(b => b.classList.remove('active-menu'));
+          btn.classList.add('active-menu');
+          document.querySelectorAll('.admin-content').forEach(c => c.classList.add('hidden'));
+          const panel = target === 'account' ? 'tab-account-content' : 'tab-' + target;
+          document.getElementById(panel).classList.remove('hidden');
+        });
+      });
+    }
+
+    /* ---- Toast ---- */
+    function toast(msg, ok) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'fixed top-6 right-6 z-50 py-2 px-4 rounded-lg shadow-lg text-white text-sm font-medium ' +
+        (ok ? 'bg-green-500' : 'bg-red-500');
+      el.classList.remove('hidden');
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
+    /* ---- 加载配置填表 ---- */
+    function loadConfig() {
+      fetch('/admin/config')
+        .then(r => {
+          if (r.status === 401) { showView('login'); return null; }
+          if (r.status === 403) { showView('forbidden'); return null; }
+          if (!r.ok) throw new Error('load failed');
+          return r.json();
+        })
+        .then(cfg => {
+          if (!cfg) return;
+          document.getElementById('mailExpireMinutes').value = cfg.mailExpireMinutes;
+          document.getElementById('maxMails').value = cfg.maxMails;
+          document.getElementById('forbiddenPrefixes').value = cfg.forbiddenPrefixes;
+          // 账户设置仅密码模式下出现（服务端返回 adminUser 字段表示非 OIDC 模式）
+          if (cfg.adminUser !== undefined) {
+            document.getElementById('adminUser').value = cfg.adminUser;
+            document.getElementById('tab-account').classList.remove('hidden');
+          }
+          showView('admin');
+        })
+        .catch(() => toast('加载配置失败', false));
+    }
+
+    /* ---- 保存 ---- */
+    document.getElementById('admin-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const data = {
+        maxMails: document.getElementById('maxMails').value,
+        mailExpireMinutes: document.getElementById('mailExpireMinutes').value,
+        forbiddenPrefixes: document.getElementById('forbiddenPrefixes').value,
+        adminUser: document.getElementById('adminUser').value,
+        adminPassword: document.getElementById('adminPassword').value,
+      };
+      fetch('/admin/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+        .then(r => r.json())
+        .then(res => {
+          toast(res.message || (res.success ? '已保存' : '保存失败'), res.success);
+          if (res.success) document.getElementById('adminPassword').value = '';
+        })
+        .catch(() => toast('保存失败', false));
+    });
+
+    /* ---- 密码模式登录 ---- */
+    document.getElementById('login-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const body = new URLSearchParams({
+        username: document.getElementById('login-user').value,
+        password: document.getElementById('login-pass').value,
+      });
+      fetch('/admin/login', { method: 'POST', body, redirect: 'manual' })
+        .then(r => {
+          // 302 到 /admin 表示登录成功
+          if (r.type === 'opaqueredirect' || r.status === 302 || r.ok) {
+            loadConfig();
+          } else {
+            document.getElementById('login-error').textContent = '用户名或密码错误';
+            document.getElementById('login-error').classList.remove('hidden');
+          }
+        })
+        .catch(() => {
+          document.getElementById('login-error').textContent = '登录失败，请重试';
+          document.getElementById('login-error').classList.remove('hidden');
+        });
+    });
+
+    /* ---- 登出 ---- */
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      window.location.href = '/admin/logout';
+    });
+
+    /* ---- 主题切换 ---- */
+    const darkToggle = document.getElementById('darkToggle');
+    if (darkToggle && typeof setupTheme === 'function') setupTheme();
+    if (darkToggle) {
+      darkToggle.addEventListener('click', () => {
+        const html = document.documentElement;
+        html.classList.toggle('dark');
+        html.classList.toggle('light');
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+      });
+    }
+
+    /* ---- 初始化 ---- */
+    initTabs();
+    // 先尝试拉配置；服务端会根据模式决定是否需要登录
+    loadConfig();
+  })();
+  </script>
+</body>
+</html>

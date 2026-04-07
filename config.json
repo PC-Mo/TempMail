@@ -1,0 +1,15 @@
+{
+  "PORT": 80,
+  "SMTP_PORT": 25,
+  "SMTP_HOST": "0.0.0.0",
+  "MAX_MAILS": 50,
+  "MAIL_EXPIRE_MINUTES": 10,
+  "ADMIN_USER": "admin",
+  "ADMIN_PASSWORD": "password",
+  "FORBIDDEN_PREFIXES": [
+    "admin",
+    "root",
+    "support"
+  ],
+  "SESSION_SECRET": "a_very_secret_key_that_should_be_changed"
+}

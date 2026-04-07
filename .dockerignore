@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Config with secrets (mount at runtime)
+.env
+
+# Dev files
+.git/
+.gitignore
+README.md
+搭建指南.md
+docker-compose.yml

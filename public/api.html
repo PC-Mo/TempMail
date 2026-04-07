@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TempMail API 文档</title>
+  <script>
+    // 根据存储的语言偏好设置页面标题
+    document.addEventListener('DOMContentLoaded', function() {
+      const lang = localStorage.getItem('language') || 'zh-CN';
+      if (lang === 'en') {
+        document.title = 'TempMail API Documentation';
+      } else {
+        document.title = 'TempMail API 文档';
+      }
+    });
+  </script>
+  <link rel="stylesheet" href="/css/tailwind.min.css">
+  <style>
+    /* API 页面特有样式 */
+    pre {
+      background: var(--surface-color);
+      padding: 14px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-size: 0.9em;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: var(--text-secondary);
+    }
+
+    .method {
+      display: inline-block;
+      padding: 0.2em 0.6em;
+      border-radius: 3px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .method-get {
+      background-color: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+
+    .method-delete {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #fecaca;
+    }
+
+    :root.light .method-get {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+
+    :root.light .method-delete {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .endpoint {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      padding: 0.5em;
+      background: rgba(79, 70, 229, 0.1);
+      border-radius: 5px;
+      border-left: 4px solid var(--primary);
+    }
+  </style>
+  <script>
+    // 动态设置基础URL
+    const baseUrl = window.location.origin;
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = baseUrl + '/' + src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    // 立即加载共享脚本
+    loadScript('js/meteor-effects.js')
+      .then(() => loadScript('js/translations.js'))
+      .catch(err => console.error('脚本加载失败:', err));
+
+    // 防止页面滚动问题
+    document.addEventListener('touchmove', function(e) {
+      if(e.target.closest('.overflow-y-auto, .overflow-x-auto, pre, code')) {
+        return;
+      }
+      if(!e.target.closest('[data-allow-scroll="true"]')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  </script>
+</head>
+<body class="galaxy-bg text-gray-100 antialiased overflow-x-hidden">
+  <!-- 星星背景 -->
+  <div id="stars-container"></div>
+
+  <!-- 流星容器 -->
+  <div class="meteor-container" id="meteor-container"></div>
+
+  <!-- 页面容器 -->
+  <div class="min-h-screen flex flex-col relative z-10">
+    <!-- 顶部导航 -->
+    <header class="sticky top-0 z-30 backdrop-filter backdrop-blur-lg w-full" style="background: var(--header-bg); border-bottom: 1px solid var(--header-border);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex justify-between items-center py-3 md:py-4">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <a href="/" class="flex items-center" aria-label="TempMail">
+              <svg class="w-8 h-8 md:w-10 md:h-10" style="color: var(--primary);" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M18 7L14 14L8 9L6 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="ml-2 text-xl md:text-2xl font-bold brand-font" style="color: var(--text-primary);">TempMail</span>
+            </a>
+          </div>
+
+          <!-- 导航链接 -->
+          <nav class="flex items-center space-x-1 sm:space-x-3">
+            <a href="/" class="font-medium px-2 py-1 rounded-md transition hover:bg-opacity-20 hover:bg-indigo-600" style="color: var(--text-secondary);" data-i18n="nav_home">首页</a>
+            <a href="/about.html" class="px-2 py-1 rounded-md transition hover:bg-opacity-20 hover:bg-indigo-600" style="color: var(--text-secondary);" data-i18n="nav_about">关于</a>
+            <button id="langToggle" class="p-2 rounded-full transition focus:outline-none hover:opacity-80" style="background-color: var(--button-bg);" aria-label="切换语言" title="切换语言">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--button-text);" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389 16.87 16.87 0 01-.554-.514 19.05 19.05 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.054 17.054 0 003.07-3.293 18.013 18.013 0 01-1.487-2.594 1 1 0 111.79-.894c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button id="darkToggle" class="p-2 rounded-full transition ml-1 focus:outline-none hover:opacity-80" style="background-color: var(--button-bg);" aria-label="切换深色模式" title="切换深色模式">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--button-text);" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 overflow-x-hidden" data-allow-scroll="true">
+      <div class="glass-card overflow-hidden p-6 sm:p-8">
+        <h1 class="text-3xl font-bold mb-6" style="color: var(--text-primary);" data-i18n="api_doc_title">TempMail API 文档</h1>
+
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold mb-3" style="color: var(--text-primary);" data-i18n="api_overview">API 概述</h2>
+          <p class="mb-4" style="color: var(--text-secondary);" data-i18n="api_overview_desc1">
+            TempMail 提供了一组简单的 RESTful API，允许您以编程方式访问临时邮箱服务。这些 API 可以用于查询邮件列表、获取特定邮件内容或删除邮件。
+          </p>
+          <p style="color: var(--text-secondary);" data-i18n="api_overview_desc2">
+            所有 API 返回 JSON 格式的数据，使用标准 HTTP 状态码表示请求结果。
+          </p>
+        </div>
+
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold mb-3" style="color: var(--text-primary);" data-i18n="api_restrictions">使用限制</h2>
+          <div style="color: var(--text-secondary);">
+            <p class="mb-2" data-i18n="api_forbidden_prefixes_desc">系统禁止使用某些特定的邮箱前缀，如 "admin"、"root" 等。如果尝试通过API访问这些前缀的邮箱，将收到 403 Forbidden 错误。</p>
+            <h4 class="font-medium mt-4 mb-2" style="color: var(--text-primary);" data-i18n="api_forbidden_example">禁用前缀错误示例</h4>
+            <pre data-allow-scroll="true"><code class="json-example">{
+  "error": "不允许使用该邮箱前缀",
+  "code": "forbidden_prefix"
+}</code></pre>
+            <p class="mt-2" data-i18n="api_forbidden_note">注意：错误消息会根据请求头中的 Accept-Language 返回中文或英文。</p>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold mb-3" style="color: var(--text-primary);" data-i18n="api_base_url">基础 URL</h2>
+          <div style="color: var(--text-secondary);">
+            <p class="mb-2" data-i18n="api_base_url_desc">所有 API 请求都使用以下基础 URL：</p>
+            <pre data-allow-scroll="true"><code class="base-url">http://您的服务器地址:端口</code></pre>
+            <p class="mt-2"><span data-i18n="api_base_url_example">例如：</span><code>http://localhost:3000</code> <span class="or-text">或</span> <code>https://mail.yourdomain.com</code></p>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold mb-3" style="color: var(--text-primary);" data-i18n="api_endpoints">API 端点</h2>
+
+          <div class="mb-6">
+            <h3 class="text-lg font-medium mb-3" style="color: var(--text-primary);" data-i18n="api_get_mails_title">1. 获取邮箱邮件列表</h3>
+            <div class="mb-3">
+              <span class="method method-get">GET</span>
+              <span class="endpoint ml-2">/api/mails/:mailboxAddr</span>
+            </div>
+            <p class="mb-3" style="color: var(--text-secondary);" data-i18n="api_get_mails_desc">
+              获取指定邮箱地址中的所有邮件列表。<code>:mailboxAddr</code> 为完整邮箱地址（如 <code>zdugawlb@localhost</code>），需要进行 URL 编码。
+            </p>
+            <h4 class="font-medium mt-4 mb-2" style="color: var(--text-primary);" data-i18n="api_example_request">示例请求</h4>
+            <pre data-allow-scroll="true"><code>GET /api/mails/zdugawlb%40localhost</code></pre>
+            <h4 class="font-medium mt-4 mb-2" style="color: var(--text-primary);" data-i18n="api_example_response">示例响应</h4>
+            <pre data-allow-scroll="true"><code class="json-example">{
+  "mails": [
+    {
+      "to": "zdugawlb@localhost",
+      "from": "test@example.com",
+      "subject": "测试邮件",
+      "text": "你好，这是一封测试邮件",
+      "html": "",
+      "date": "2025-04-15T12:02:26.000Z",
+      "attachments": [],
+      "raw": "..."
+    },
+    // 更多邮件...
+  ]
+}</code></pre>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="text-lg font-medium mb-3" style="color: var(--text-primary);" data-i18n="api_get_mail_title">2. 获取指定邮件</h3>
+            <div class="mb-3">
+              <span class="method method-get">GET</span>
+              <span class="endpoint ml-2">/api/mails/:mailboxAddr/:idx</span>
+            </div>
+            <p class="mb-3" style="color: var(--text-secondary);" data-i18n="api_get_mail_desc">
+              获取指定邮箱中特定索引的邮件。<code>:mailboxAddr</code> 为完整邮箱地址，需要 URL 编码；<code>:idx</code> 为邮件在列表中的索引（从0开始）。
+            </p>
+            <h4 class="font-medium mt-4 mb-2" style="color: var(--text-primary);" data-i18n="api_example_request">示例请求</h4>
+            <pre data-allow-scroll="true"><code>GET /api/mails/zdugawlb%40localhost/0</code></pre>
+            <h4 class="font-medium mt-4 mb-2" style="color: var(--text-primary);" data-i18n="api_example_response_success">示例响应 - 成功</h4>
+            <pre data-allow-scroll="true"><code class="json-example">{
+  "mail": {
+    "to": "zdugawlb@localhost",
+    "from": "test@example.com",
+    "subject": "测试邮件",
+    "text": "你好，这是一封测试邮件",
+    "html": "",
+    "date": "2025-04-15T12:02:26.000Z",
+    "attachments": [],
+    "raw": "..."
+  }
+}</code></pre>
+            <h4 class="font-medium mt-4 mb-2" style="color: var(--text-primary);" data-i18n="api_example_response_fail">示例响应 - 邮件不存在</h4>
+            <pre data-allow-scroll="true"><code class="json-error-example">{
+  "error": "<span class="error-message">邮件不存在或已过期</span>"
+}</code></pre>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="text-lg font-medium mb-3" style="color: var(--text-primary);" data-i18n="api_delete_mail_title">3. 删除指定邮件</h3>
+            <div class="mb-3">
+              <span class="method method-delete">DELETE</span>
+              <span class="endpoint ml-2">/api/mails/:mailboxAddr/:idx</span>
+            </div>
+            <p class="mb-3" style="color: var(--text-secondary);" data-i18n="api_delete_mail_desc">
+              删除指定邮箱中特定索引的邮件。<code>:mailboxAddr</code> 为完整邮箱地址，需要 URL 编码；<code>:idx</code> 为邮件在列表中的索引（从0开始）。
+            </p>
+            <h4 class="font-medium mt-4 mb-2" style="color: var(--text-primary);" data-i18n="api_example_request">示例请求</h4>
+            <pre data-allow-scroll="true"><code>DELETE /api/mails/zdugawlb%40localhost/0</code></pre>
+            <h4 class="font-medium mt-4 mb-2" style="color: var(--text-primary);" data-i18n="api_example_response">示例响应</h4>
+            <pre data-allow-scroll="true"><code>{
+  "success": true
+}</code></pre>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold mb-3" style="color: var(--text-primary);" data-i18n="api_usage_examples">使用示例</h2>
+
+          <div class="mb-6">
+            <h3 class="text-lg font-medium mb-3" style="color: var(--text-primary);" data-i18n="api_curl_examples">cURL 示例</h3>
+            <h4 class="font-medium mt-3 mb-2" style="color: var(--text-primary);" data-i18n="api_get_mail_list">获取邮件列表</h4>
+            <pre data-allow-scroll="true"><code>curl -X GET "http://localhost:3000/api/mails/zdugawlb%40localhost"</code></pre>
+
+            <h4 class="font-medium mt-3 mb-2" style="color: var(--text-primary);" data-i18n="api_get_specific_mail">获取特定邮件</h4>
+            <pre data-allow-scroll="true"><code>curl -X GET "http://localhost:3000/api/mails/zdugawlb%40localhost/0"</code></pre>
+
+            <h4 class="font-medium mt-3 mb-2" style="color: var(--text-primary);" data-i18n="api_delete_mail">删除邮件</h4>
+            <pre data-allow-scroll="true"><code>curl -X DELETE "http://localhost:3000/api/mails/zdugawlb%40localhost/0"</code></pre>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="text-lg font-medium mb-3" style="color: var(--text-primary);" data-i18n="api_js_examples">JavaScript 示例</h3>
+            <pre data-allow-scroll="true"><code class="js-code">// 获取邮件列表
+async function getMailList(mailbox) {
+  const response = await fetch(`http://localhost:3000/api/mails/${encodeURIComponent(mailbox)}`);
+  const data = await response.json();
+  return data.mails;
+}
+
+// 获取特定邮件
+async function getMail(mailbox, index) {
+  const response = await fetch(`http://localhost:3000/api/mails/${encodeURIComponent(mailbox)}/${index}`);
+  if (response.ok) {
+    const data = await response.json();
+    return data.mail;
+  }
+  return null;
+}
+
+// 删除邮件
+async function deleteMail(mailbox, index) {
+  const response = await fetch(
+    `http://localhost:3000/api/mails/${encodeURIComponent(mailbox)}/${index}`,
+    { method: 'DELETE' }
+  );
+  const data = await response.json();
+  return data.success;
+}</code></pre>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="text-lg font-medium mb-3" style="color: var(--text-primary);" data-i18n="api_python_examples">Python 示例</h3>
+            <pre data-allow-scroll="true"><code class="py-code">import requests
+import urllib.parse
+
+BASE_URL = "http://localhost:3000"
+
+# 获取邮件列表
+def get_mail_list(mailbox):
+    mailbox_encoded = urllib.parse.quote(mailbox)
+    response = requests.get(f"{BASE_URL}/api/mails/{mailbox_encoded}")
+    return response.json()['mails'] if response.status_code == 200 else []
+
+# 获取特定邮件
+def get_mail(mailbox, index):
+    mailbox_encoded = urllib.parse.quote(mailbox)
+    response = requests.get(f"{BASE_URL}/api/mails/{mailbox_encoded}/{index}")
+    return response.json()['mail'] if response.status_code == 200 else None
+
+# 删除邮件
+def delete_mail(mailbox, index):
+    mailbox_encoded = urllib.parse.quote(mailbox)
+    response = requests.delete(f"{BASE_URL}/api/mails/{mailbox_encoded}/{index}")
+    return response.json()['success'] if response.status_code == 200 else False</code></pre>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="py-6 text-center text-xs sm:text-sm mt-auto w-full" style="color: var(--text-tertiary);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <p data-i18n="footer_text">© 2025 TempMail - 如流星般短暂而绚丽的临时邮箱服务</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // 防止页面弹性滚动问题
+    document.body.addEventListener('touchmove', function(e) {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // 页面加载时执行
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化语言设置
+      if (typeof setupLanguage === 'function') {
+        setupLanguage();
+      }
+
+      // 翻译代码示例中的注释和内容
+      translateCodeExamples();
+
+      // 监听语言切换事件
+      document.addEventListener('languageChanged', (event) => {
+        console.log('语言已切换:', event.detail.language);
+        // 重新翻译代码示例
+        translateCodeExamples();
+      });
+    });
+
+    // 翻译代码示例
+    function translateCodeExamples() {
+      const lang = localStorage.getItem('language') || 'zh-CN';
+      console.log('执行代码示例翻译，当前语言:', lang);
+
+      // 翻译 JavaScript 代码注释
+      const jsCode = document.querySelector('code.js-code');
+      if (jsCode) {
+        let content = jsCode.innerHTML;
+        if (lang === 'en') {
+          // 中文 -> 英文
+          content = content.replace(/\/\/ 获取邮件列表/g, '// Get email list');
+          content = content.replace(/\/\/ 获取特定邮件/g, '// Get specific email');
+          content = content.replace(/\/\/ 删除邮件/g, '// Delete email');
+        } else {
+          // 英文 -> 中文
+          content = content.replace(/\/\/ Get email list/g, '// 获取邮件列表');
+          content = content.replace(/\/\/ Get specific email/g, '// 获取特定邮件');
+          content = content.replace(/\/\/ Delete email/g, '// 删除邮件');
+        }
+        jsCode.innerHTML = content;
+      }
+
+      // 翻译 Python 代码注释
+      const pyCode = document.querySelector('code.py-code');
+      if (pyCode) {
+        let content = pyCode.innerHTML;
+        if (lang === 'en') {
+          // 中文 -> 英文
+          content = content.replace(/# 获取邮件列表/g, '# Get email list');
+          content = content.replace(/# 获取特定邮件/g, '# Get specific email');
+          content = content.replace(/# 删除邮件/g, '# Delete email');
+        } else {
+          // 英文 -> 中文
+          content = content.replace(/# Get email list/g, '# 获取邮件列表');
+          content = content.replace(/# Get specific email/g, '# 获取特定邮件');
+          content = content.replace(/# Delete email/g, '# 删除邮件');
+        }
+        pyCode.innerHTML = content;
+      }
+
+      // 翻译 JSON 示例中的中文内容
+      const jsonExamples = document.querySelectorAll('code.json-example');
+      if (jsonExamples.length > 0) {
+        jsonExamples.forEach(example => {
+          let content = example.innerHTML;
+          if (lang === 'en') {
+            // 中文 -> 英文
+            content = content.replace(/"subject": "测试邮件"/g, '"subject": "Test Email"');
+            content = content.replace(/"text": "你好，这是一封测试邮件"/g, '"text": "Hello, this is a test email"');
+            content = content.replace(/\/\/ 更多邮件\.\.\./g, '// more emails...');
+          } else {
+            // 英文 -> 中文
+            content = content.replace(/"subject": "Test Email"/g, '"subject": "测试邮件"');
+            content = content.replace(/"text": "Hello, this is a test email"/g, '"text": "你好，这是一封测试邮件"');
+            content = content.replace(/\/\/ more emails\.\.\./g, '// 更多邮件...');
+          }
+          example.innerHTML = content;
+        });
+      }
+
+      // 翻译基础 URL 示例
+      const baseUrlCode = document.querySelector('code.base-url');
+      if (baseUrlCode) {
+        if (lang === 'en') {
+          baseUrlCode.textContent = 'http://your-server-address:port';
+        } else {
+          baseUrlCode.textContent = 'http://您的服务器地址:端口';
+        }
+      }
+
+      // 翻译"或"文本
+      const orTexts = document.querySelectorAll('.or-text');
+      orTexts.forEach(text => {
+        if (lang === 'en') {
+          text.textContent = 'or';
+        } else {
+          text.textContent = '或';
+        }
+      });
+
+      // 翻译错误消息
+      const errorMessages = document.querySelectorAll('.error-message');
+      errorMessages.forEach(message => {
+        if (lang === 'en') {
+          message.textContent = 'Email does not exist or has expired';
+        } else {
+          message.textContent = '邮件不存在或已过期';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

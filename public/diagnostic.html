@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TempMail 系统诊断</title>
+  <link rel="stylesheet" href="/css/tailwind.min.css">
+  <style>
+    /* Diagnostic 页面特有样式 */
+    pre {
+      background: var(--surface-color);
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      color: var(--text-secondary);
+    }
+  </style>
+  <script>
+    // 动态设置基础URL
+    const baseUrl = window.location.origin;
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = baseUrl + '/' + src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    // 立即加载共享脚本
+    loadScript('js/meteor-effects.js')
+      .then(() => loadScript('js/translations.js'))
+      .catch(err => console.error('脚本加载失败:', err));
+  </script>
+</head>
+<body class="galaxy-bg text-gray-100 antialiased overflow-x-hidden">
+  <!-- 星星背景 -->
+  <div id="stars-container"></div>
+
+  <!-- 流星容器 -->
+  <div class="meteor-container" id="meteor-container"></div>
+
+  <!-- 页面容器 -->
+  <div class="min-h-screen flex flex-col relative z-10">
+    <!-- 顶部导航 -->
+    <header class="sticky top-0 z-30 backdrop-filter backdrop-blur-lg" style="background: var(--header-bg); border-bottom: 1px solid var(--header-border);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex justify-between items-center py-3 md:py-4">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <a href="/" class="flex items-center" aria-label="TempMail">
+              <svg class="w-8 h-8 md:w-10 md:h-10" style="color: var(--primary);" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M18 7L14 14L8 9L6 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="ml-2 text-xl md:text-2xl font-bold brand-font" style="color: var(--text-primary);">TempMail</span>
+            </a>
+          </div>
+
+          <!-- 导航链接 -->
+          <nav class="flex items-center space-x-1 sm:space-x-3">
+            <a href="/" class="font-medium px-2 py-1 rounded-md transition hover:bg-opacity-20 hover:bg-indigo-600" style="color: var(--text-secondary);" data-i18n="nav_home">首页</a>
+            <a href="/about.html" class="px-2 py-1 rounded-md transition hover:bg-opacity-20 hover:bg-indigo-600" style="color: var(--text-secondary);" data-i18n="nav_about">关于</a>
+            <button id="langToggle" class="p-2 rounded-full transition focus:outline-none hover:opacity-80" style="background-color: var(--button-bg);" aria-label="切换语言" title="切换语言">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--button-text);" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389 16.87 16.87 0 01-.554-.514 19.05 19.05 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.054 17.054 0 003.07-3.293 18.013 18.013 0 01-1.487-2.594 1 1 0 111.79-.894c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button id="darkToggle" class="p-2 rounded-full transition ml-1 focus:outline-none hover:opacity-80" style="background-color: var(--button-bg);" aria-label="切换深色模式" title="切换深色模式">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--button-text);" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div class="glass-card p-6 sm:p-8">
+        <h1 class="text-2xl font-bold mb-6" style="color: var(--text-primary);" data-i18n="system_diagnostic">TempMail 系统诊断</h1>
+
+        <h2 class="text-xl font-semibold mb-3" style="color: var(--text-primary);" data-i18n="browser_info">浏览器信息</h2>
+        <pre id="browserInfo" class="mb-6"></pre>
+
+        <h2 class="text-xl font-semibold mb-3" style="color: var(--text-primary);" data-i18n="connection_test">网络连接测试</h2>
+        <div>
+          <button id="testBtn" class="px-4 py-2 transition-colors rounded-md" style="background-color: var(--button-bg); color: var(--button-text);" data-i18n="test_socket_connection">测试Socket.IO连接</button>
+          <div id="testResult" class="mt-4 p-4 rounded-lg" style="background-color: var(--surface-color); color: var(--text-secondary);"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="py-6 text-center text-xs sm:text-sm mt-auto" style="color: var(--text-tertiary);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <p data-i18n="footer_text">© 2025 TempMail - 如流星般短暂而绚丽的临时邮箱服务</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 页面特定功能 -->
+  <script>
+    // 页面加载时执行
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化语言设置
+      if (typeof setupLanguage === 'function') {
+        setupLanguage();
+      }
+    });
+
+    // 显示浏览器信息
+    const browserInfo = document.getElementById('browserInfo');
+    browserInfo.textContent = JSON.stringify({
+      userAgent: navigator.userAgent,
+      host: location.host,
+      origin: location.origin,
+      protocol: location.protocol,
+      currentUrl: location.href
+    }, null, 2);
+
+    // 测试Socket.IO连接
+    document.getElementById('testBtn').addEventListener('click', function() {
+      const resultDiv = document.getElementById('testResult');
+      const lang = localStorage.getItem('language') || 'zh-CN';
+      resultDiv.innerHTML = translations[lang].connecting || '正在连接...';
+
+      try {
+        // 尝试加载Socket.IO脚本
+        const script = document.createElement('script');
+        script.src = 'socket.io.min.js';
+        script.onload = function() {
+          resultDiv.innerHTML += '<br>' + (translations[lang].script_loaded || 'Socket.IO脚本加载成功');
+
+          try {
+            // 尝试连接
+            const socket = io(window.location.origin);
+
+            socket.on('connect', function() {
+              resultDiv.innerHTML += '<br>' + (translations[lang].connection_success || '✅ 连接成功! Socket ID: ') + socket.id;
+            });
+
+            socket.on('connect_error', function(err) {
+              resultDiv.innerHTML += '<br>' + (translations[lang].connection_error || '❌ 连接错误: ') + err.message;
+            });
+          } catch (e) {
+            resultDiv.innerHTML += '<br>' + (translations[lang].socket_error || '❌ Socket.IO连接错误: ') + e.message;
+          }
+        };
+
+        script.onerror = function() {
+          resultDiv.innerHTML += '<br>' + (translations[lang].script_load_error || '❌ Socket.IO脚本加载失败');
+        };
+
+        document.head.appendChild(script);
+      } catch(e) {
+        resultDiv.innerHTML += '<br>' + (translations[lang].execution_error || '❌ 执行错误: ') + e.message;
+      }
+    });
+  </script>
+</body>
+</html>

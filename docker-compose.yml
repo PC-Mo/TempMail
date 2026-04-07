@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  tempmail:
+    build: .
+    container_name: tempmail
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "25:25"
+    volumes:
+      - ./config.json:/app/config.json
+    environment:
+      - BASE_URL=https://mail.example.com
+      # SESSION_SECRET: 建议通过环境变量注入，不写进 config.json
+      # - SESSION_SECRET=your_secret_here

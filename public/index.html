@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TempMail</title>
+  <meta name="keywords" content="十分钟邮箱, 临时邮箱, 临时邮件, 一次性邮箱, 匿名邮箱, 邮箱接码, 邮箱验证码, 邮箱临时接收, 临时电子邮件, 临时邮箱平台, 临时邮箱服务, 10分钟邮箱, 10min mail, temp mail, disposable email, email verification" />
+  <link rel="stylesheet" href="/css/tailwind.min.css">
+  <script>
+    // 动态设置基础URL
+    const baseUrl = window.location.origin;
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = baseUrl + '/' + src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    // 并行加载独立脚本，app.js 依赖 config.js 故串行
+    Promise.all([
+      loadScript('js/meteor-effects.js'),
+      loadScript('js/config.js'),
+      loadScript('clipboard.min.js'),
+    ])
+      .then(() => loadScript('app.js'))
+      .catch(err => console.error('脚本加载失败:', err));
+
+    // 防止页面滚动问题
+    document.addEventListener('touchmove', function(e) {
+      if(e.target.closest('.overflow-y-auto, .overflow-x-auto')) {
+        return;
+      }
+      // 阻止其他区域的触摸滚动，除非明确设置了溢出
+      if(!e.target.closest('[data-allow-scroll="true"]')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  </script>
+</head>
+<body class="galaxy-bg text-gray-100 antialiased overflow-x-hidden">
+  <!-- 星星背景 -->
+  <div id="stars-container"></div>
+
+  <!-- 流星容器 -->
+  <div class="meteor-container" id="meteor-container"></div>
+
+  <!-- 页面容器 -->
+  <div class="min-h-screen flex flex-col relative z-10">
+    <!-- 顶部导航 -->
+    <header class="sticky top-0 z-30 backdrop-filter backdrop-blur-lg w-full" style="background: var(--header-bg); border-bottom: 1px solid var(--header-border);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex justify-between items-center py-3 md:py-4">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <a href="/" class="flex items-center" aria-label="TempMail">
+              <svg class="w-8 h-8 md:w-10 md:h-10" style="color: var(--primary);" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M18 7L14 14L8 9L6 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="ml-2 text-xl md:text-2xl font-bold brand-font" style="color: var(--text-primary);">TempMail</span>
+            </a>
+          </div>
+
+          <!-- 导航链接 -->
+          <nav class="flex items-center space-x-1 sm:space-x-3">
+            <button id="darkToggle" class="p-2 rounded-full transition ml-1 focus:outline-none hover:opacity-80" style="background-color: var(--button-bg);" aria-label="切换主题" title="切换主题">
+              <svg id="themeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--button-text);" viewBox="0 0 20 20" fill="currentColor">
+                <!-- icon 由 JS 动态替换 -->
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 overflow-x-hidden">
+      <!-- 主卡片 -->
+      <div class="glass-card mb-6 sm:mb-10 overflow-hidden">
+        <div class="px-5 py-6 sm:p-8" style="background: linear-gradient(to bottom right, var(--primary), var(--accent))">
+          <div class="max-w-3xl mx-auto text-center sm:text-left">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 brand-font leading-tight" style="color: white;">
+              临时邮箱，如流星般闪耀而短暂
+            </h1>
+            <p class="mb-6 sm:mb-8 text-sm sm:text-base max-w-2xl" style="color: rgba(255, 255, 255, 0.9);">
+              快速创建一次性临时邮箱，保护您的隐私，避免垃圾邮件和广告骚扰。无需注册，即用即走。
+            </p>
+
+            <!-- 邮箱地址 -->
+            <div class="flex flex-col sm:flex-row items-stretch gap-3 sm:gap-4">
+              <div class="relative flex-1 min-w-0">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5" style="color: var(--text-secondary);" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                </div>
+                <input id="mailboxId" class="block w-full pl-10 pr-10 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" style="background: var(--input-bg); border: 1px solid var(--input-border); color: var(--input-text);" readonly placeholder="您的临时邮箱地址将显示在这里" />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+                  <button id="copyBtn" class="p-1.5 hover:bg-indigo-700 hover:bg-opacity-50 rounded-lg transition-colors" data-clipboard-target="#mailboxId" title="复制邮箱地址" data-original-title="复制邮箱地址">
+                    <svg class="h-5 w-5" style="color: var(--text-secondary);" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 按钮组 -->
+              <div class="flex space-x-2 sm:space-x-3 justify-center sm:justify-start">
+                <button id="refreshBtn" class="flex items-center justify-center px-3 sm:px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-90" style="background-color: var(--button-bg); color: var(--button-text);">
+                  <svg class="h-5 w-5 button-icon mr-2 sm:mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="button-text">刷新</span>
+                </button>
+                <button id="customBtn" class="flex items-center justify-center px-3 sm:px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:opacity-90" style="background-color: var(--accent); color: var(--button-text);">
+                  <svg class="h-5 w-5 button-icon mr-2 sm:mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                  <span class="button-text">自定义</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 功能亮点 -->
+        <div class="px-5 py-4 sm:px-8 sm:py-5" style="background-color: rgba(79, 70, 229, 0.1);">
+          <div class="grid grid-cols-2 md:flex md:flex-wrap gap-y-2 gap-x-3 md:gap-x-6 justify-center md:justify-between text-xs sm:text-sm" style="color: var(--text-secondary);">
+            <div class="flex items-center">
+              <div class="rounded-full p-1 mr-2" style="background-color: rgba(34, 197, 94, 0.2);">
+                <svg class="h-3 w-3 sm:h-4 sm:w-4" style="color: rgb(34, 197, 94);" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <span>无需注册</span>
+            </div>
+            <div class="flex items-center">
+              <div class="rounded-full p-1 mr-2" style="background-color: rgba(34, 197, 94, 0.2);">
+                <svg class="h-3 w-3 sm:h-4 sm:w-4" style="color: rgb(34, 197, 94);" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3.293 3.293 3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <span>实时接收</span>
+            </div>
+            <div class="flex items-center">
+              <div class="rounded-full p-1 mr-2" style="background-color: rgba(34, 197, 94, 0.2);">
+                <svg class="h-3 w-3 sm:h-4 sm:w-4" style="color: rgb(34, 197, 94);" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <span>10分钟自动销毁</span>
+            </div>
+            <div class="flex items-center">
+              <div class="rounded-full p-1 mr-2" style="background-color: rgba(34, 197, 94, 0.2);">
+                <svg class="h-3 w-3 sm:h-4 sm:w-4" style="color: rgb(34, 197, 94);" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <span>保护隐私</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 邮件列表卡片 -->
+      <div class="glass-card overflow-hidden">
+        <div class="p-5 sm:p-6">
+          <!-- 卡片标题 -->
+          <div class="flex items-center justify-between mb-5 sm:mb-6">
+            <h2 class="text-lg sm:text-xl font-bold" style="color: var(--text-primary);">收件箱</h2>
+            <div class="hidden sm:flex items-center text-xs" style="color: var(--text-tertiary);">
+              <span class="inline-block h-2 w-2 rounded-full bg-green-400 mr-2"></span>
+              <span>实时接收中</span>
+            </div>
+          </div>
+
+          <!-- 桌面端邮件列表 -->
+          <div class="hidden sm:block rounded-lg overflow-hidden">
+            <table class="min-w-full">
+              <thead>
+                <tr class="text-left text-xs" style="background-color: rgba(79, 70, 229, 0.1); color: var(--text-secondary);">
+                  <th class="px-4 py-3 font-medium tracking-wider rounded-tl-lg">发件人</th>
+                  <th class="px-4 py-3 font-medium tracking-wider">主题</th>
+                  <th class="px-4 py-3 font-medium tracking-wider">时间</th>
+                  <th class="px-4 py-3 font-medium tracking-wider text-right rounded-tr-lg">操作</th>
+                </tr>
+              </thead>
+              <tbody id="mailList" class="divide-y" style="border-color: var(--border-color); opacity: 0.5;">
+                <!-- 由JavaScript填充 -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 移动端邮件列表 -->
+          <div id="mailCards" class="flex flex-col gap-3 sm:hidden">
+            <!-- 由JavaScript填充 -->
+          </div>
+
+          <!-- 空邮箱提示 -->
+          <div id="emptyTip" class="flex flex-col items-center justify-center py-10 sm:py-16 px-4 text-center">
+            <div class="relative mb-4">
+              <svg class="w-16 h-16 opacity-30" style="color: var(--primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div class="w-3 h-3 rounded-full opacity-75" style="background-color: var(--primary-light);"></div>
+              </div>
+            </div>
+            <h3 class="text-lg font-medium mb-2" style="color: var(--text-primary);">邮箱空空如也</h3>
+            <p class="text-sm max-w-xs" style="color: var(--text-tertiary);">邮件将在发送后实时显示，无需刷新页面</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="py-6 text-center text-xs sm:text-sm mt-auto w-full" style="color: var(--text-tertiary);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <p>© 2025 TempMail - 如流星般短暂而绚丽的临时邮箱服务</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 邮件详情弹窗 -->
+  <div id="modal" class="fixed inset-0 backdrop-filter backdrop-blur-sm flex items-center justify-center hidden z-50" style="background: rgba(0, 0, 0, 0.7);">
+    <div class="w-full max-w-lg mx-4 backdrop-filter backdrop-blur-lg rounded-2xl overflow-hidden shadow-2xl" style="background: var(--modal-bg); border: 1px solid var(--modal-border); max-height: 90vh; display: flex; flex-direction: column;">
+      <!-- 弹窗头部 -->
+      <div class="px-5 sm:px-6 py-4 sm:py-5 flex justify-between items-start" style="border-bottom: 1px solid var(--border-color);">
+        <div>
+          <h3 id="modalSubject" class="text-lg font-semibold mb-0.5 line-clamp-1" style="color: var(--text-primary);"></h3>
+          <div id="modalFrom" class="text-sm" style="color: var(--text-secondary);"></div>
+          <div id="modalDate" class="text-xs mt-0.5" style="color: var(--text-tertiary);"></div>
+        </div>
+        <button id="closeModal" class="p-1 hover:opacity-80 focus:outline-none transition" style="color: var(--text-tertiary);" title="关闭">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- 弹窗内容 -->
+      <div class="px-5 sm:px-6 py-4 sm:py-5 overflow-y-auto" style="flex: 1;">
+        <div class="prose prose-sm max-w-none" id="modalContent" style="color: var(--text-primary)" data-allow-scroll="true">
+          <!-- 内容由JavaScript填充 -->
+        </div>
+
+        <!-- 原始内容 -->
+        <div class="mt-5 pt-4" style="border-top: 1px solid var(--border-color);">
+          <button id="showRaw" class="flex items-center text-xs transition hover:opacity-80" style="color: var(--text-tertiary);">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+            <span>查看原始内容</span>
+          </button>
+          <pre id="rawContent" class="hidden mt-3 p-3 rounded-lg text-xs overflow-y-auto overflow-x-auto" style="background-color: rgba(79, 70, 229, 0.1); color: var(--text-secondary); max-height: 40vh;" data-allow-scroll="true"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页面特定 JavaScript -->
+  <script>
+    // 提高移动端响应性
+    function enhanceMobileExperience() {
+      // 移动端点击空白处关闭弹窗
+      const modal = document.getElementById('modal');
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+
+      // 为长邮箱地址添加滚动效果
+      const mailboxInput = document.getElementById('mailboxId');
+      mailboxInput.addEventListener('click', () => {
+        if (mailboxInput.scrollWidth > mailboxInput.clientWidth) {
+          mailboxInput.scrollLeft = mailboxInput.scrollWidth;
+          setTimeout(() => {
+            mailboxInput.scrollLeft = 0;
+          }, 1000);
+        }
+      });
+
+      // 防止页面弹性滚动问题
+      document.body.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    }
+
+    // 自定义邮箱弹窗
+    function createCustomModal() {
+      let customModal = document.createElement('div');
+      customModal.id = 'customModal';
+      customModal.className = 'fixed inset-0 backdrop-filter backdrop-blur-sm flex items-center justify-center z-50 hidden';
+      customModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+      customModal.innerHTML = `
+        <div class="w-full max-w-md mx-4 backdrop-filter backdrop-blur-lg rounded-2xl overflow-hidden shadow-2xl" style="background: var(--modal-bg); border: 1px solid var(--modal-border);">
+          <div class="px-5 sm:px-6 py-4 sm:py-5" style="border-bottom: 1px solid var(--border-color);">
+            <h3 class="text-lg font-semibold" style="color: var(--text-primary);">自定义邮箱</h3>
+          </div>
+          <div class="px-5 sm:px-6 py-5">
+            <div class="mb-4">
+              <label for="customInput" class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">邮箱前缀</label>
+              <div class="relative">
+                <input type="text" id="customInput" maxlength="32" placeholder="仅限字母和数字" class="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" style="background: var(--input-bg); border: 1px solid var(--input-border); color: var(--input-text);">
+                <div class="absolute right-0 top-0 bottom-0 flex items-center pr-3 pointer-events-none">
+                  <span style="color: var(--text-tertiary);">@${typeof getEmailDomain === 'function' ? getEmailDomain() : location.hostname}</span>
+                </div>
+              </div>
+              <div id="customError" class="text-xs text-red-400 mt-1 hidden"></div>
+            </div>
+            <div class="flex justify-end space-x-3">
+              <button id="customCancel" class="px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors hover:opacity-90" style="background-color: rgba(79, 70, 229, 0.1); color: var(--text-secondary);">取消</button>
+              <button id="customOk" class="px-4 py-2 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors hover:opacity-90" style="background-color: var(--accent); color: var(--button-text);">确定</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(customModal);
+      return customModal;
+    }
+
+    // 自定义邮箱事件
+    function setupCustomModal() {
+      const customBtn = document.getElementById('customBtn');
+      let customModal;
+      // 跟踪上次成功的邮箱ID
+      let lastSuccessfulMailboxId = localStorage.getItem('mailboxId') || '';
+
+      customBtn.addEventListener('click', () => {
+        // 每次点击都重新创建模态框，确保使用最新的语言设置
+        if (customModal) {
+          document.body.removeChild(customModal);
+        }
+        customModal = createCustomModal();
+
+        // 获取元素引用
+        const customInput = document.getElementById('customInput');
+        const customOk = document.getElementById('customOk');
+        const customCancel = document.getElementById('customCancel');
+        const customError = document.getElementById('customError');
+
+        // 设置事件处理
+        customOk.onclick = () => {
+          const val = customInput.value.trim();
+          if (!val) {
+            customError.textContent = '邮箱前缀不能为空';
+            customError.classList.remove('hidden');
+            return;
+          }
+          if (!/^[a-zA-Z0-9]+$/.test(val)) {
+            customError.textContent = '仅限字母和数字';
+            customError.classList.remove('hidden');
+            return;
+          }
+
+          // 发送到socket
+          window.wsSend({ type: 'set_mailbox', id: val.toLowerCase() });
+          
+          // WS onmessage 已在 app.js 中统一处理 mailbox / mailbox_error
+          // 成功时 app.js 的 ws.onmessage 会触发 setMailboxId 并关闭弹窗由 handleMailboxError 处理错误
+          // 这里注册一次性监听，收到下一条 mailbox 消息时关闭弹窗
+          const _closeOnMailbox = (e) => {
+            try {
+              const msg = JSON.parse(e.data);
+              if (msg.type === 'mailbox') {
+                customModal.classList.add('hidden');
+                if (window._wsRef) window._wsRef.removeEventListener('message', _closeOnMailbox);
+              } else if (msg.type === 'mailbox_error') {
+                const errMsg = msg.code === 'forbidden_prefix' ? '不允许使用该邮箱前缀' : '操作失败';
+                customError.textContent = errMsg;
+                customError.classList.remove('hidden');
+                if (window._wsRef) window._wsRef.removeEventListener('message', _closeOnMailbox);
+              }
+            } catch {}
+          };
+          if (window._wsRef) window._wsRef.addEventListener('message', _closeOnMailbox);
+        };
+
+        customCancel.onclick = () => {
+          customModal.classList.add('hidden');
+        };
+
+        customInput.onkeydown = e => {
+          if (e.key === 'Enter') customOk.onclick();
+          if (e.key === 'Escape') customCancel.onclick();
+        };
+
+        // 点击空白处关闭
+        customModal.addEventListener('click', (e) => {
+          if (e.target === customModal) {
+            customModal.classList.add('hidden');
+          }
+        });
+
+        // 重置状态
+        customInput.value = '';
+        customError.classList.add('hidden');
+        customModal.classList.remove('hidden');
+        customInput.focus();
+      });
+    }
+
+    // 自定义复制成功反馈
+    function setupCopyFeedback() {
+      const copyBtn = document.getElementById('copyBtn');
+      copyBtn.addEventListener('click', () => {
+        copyBtn.setAttribute('title', '已复制!');
+        copyBtn.classList.add('text-green-300');
+        setTimeout(() => {
+          copyBtn.setAttribute('title', '复制邮箱地址');
+          copyBtn.classList.remove('text-green-300');
+        }, 1500);
+      });
+    }
+
+    // 页面加载时执行
+    document.addEventListener('DOMContentLoaded', () => {
+      enhanceMobileExperience();
+      setupCustomModal();
+      setupCopyFeedback();
+    });
+  </script>
+</body>
+</html>
