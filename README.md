@@ -67,7 +67,12 @@ Used when `OIDC_ISSUER_URL` is set. All users must authenticate via the OIDC pro
 | `USER_GROUP` | _(empty)_ | Group required to access the main site. Empty = any authenticated user |
 | `ADMIN_GROUP` | _(empty)_ | Group required to access `/admin`. Empty = nobody can access admin |
 
-> **OIDC provider setup**: register a confidential client with scopes `openid profile groups` and redirect URI pointing to `/auth/callback`. The `groups` claim must be returned by the userinfo endpoint.
+> **OIDC provider setup**: register a confidential client and ensure the following:
+> 1. Scopes `openid`, `profile`, and `groups` are **all permitted** on the client
+> 2. The provider returns a `groups` claim (array or string) in the userinfo endpoint response
+> 3. The redirect URI matches `OIDC_REDIRECT_URI` exactly
+>
+> The app requests `scope=openid profile groups` on every authorization request. If the provider does not allow the `groups` scope or does not return a `groups` claim, `USER_GROUP` and `ADMIN_GROUP` checks will always fail (users will get 403).
 
 #### Example: Authelia
 
