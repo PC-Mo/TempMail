@@ -18,7 +18,8 @@ type Config struct {
 	MailExpireMinutes int      `json:"MAIL_EXPIRE_MINUTES"`
 	AdminUser         string   `json:"ADMIN_USER"`
 	AdminPassword     string   `json:"ADMIN_PASSWORD"`
-	AdminGroup        string   `json:"ADMIN_GROUP"` // OIDC 模式：有此 group 的用户可访问 admin
+	AdminGroup        string   `json:"ADMIN_GROUP"` // OIDC 模式：有此 group 的用户可访问 /admin（空=禁止所有人）
+	UserGroup         string   `json:"USER_GROUP"`  // OIDC 模式：有此 group 的用户可访问主站（空=所有已登录用户）
 	ForbiddenPrefixes []string `json:"FORBIDDEN_PREFIXES"`
 	SessionSecret     string   `json:"SESSION_SECRET"`
 	BaseURL           string   `json:"BASE_URL"`
@@ -77,6 +78,9 @@ func Load(path string) *Config {
 		}
 		if v := os.Getenv("ADMIN_GROUP"); v != "" {
 			c.AdminGroup = v
+		}
+		if v := os.Getenv("USER_GROUP"); v != "" {
+			c.UserGroup = v
 		}
 		if v := os.Getenv("FORBIDDEN_PREFIXES"); v != "" {
 			c.ForbiddenPrefixes = splitPrefixes(v)
@@ -149,6 +153,8 @@ type Snapshot struct {
 	ForbiddenPrefixes []string
 	AdminUser         string
 	AdminPassword     string
+	AdminGroup        string
+	UserGroup         string
 }
 
 func (c *Config) Snap() Snapshot {
@@ -162,6 +168,8 @@ func (c *Config) Snap() Snapshot {
 		ForbiddenPrefixes: fp,
 		AdminUser:         c.AdminUser,
 		AdminPassword:     c.AdminPassword,
+		AdminGroup:        c.AdminGroup,
+		UserGroup:         c.UserGroup,
 	}
 }
 

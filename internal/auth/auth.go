@@ -103,6 +103,12 @@ func Middleware(next http.Handler) http.Handler {
 
 		sess, _ := getStore().Get(r, sessionName)
 		if authed, _ := sess.Values["authenticated"].(bool); authed {
+			// USER_GROUP check: if configured, only members may access
+			userGroup := config.Get().UserGroup
+			if userGroup != "" && !isInGroupFromSession(sess, userGroup) {
+				http.Error(w, "403 Forbidden: not in required group", http.StatusForbidden)
+				return
+			}
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -276,15 +282,7 @@ type UserInfo struct {
 	Groups   []string
 }
 
-// IsInGroup reports whether the user belongs to the given group.
-func IsInGroup(r *http.Request, group string) bool {
-	if group == "" {
-		return false
-	}
-	sess, err := getStore().Get(r, sessionName)
-	if err != nil {
-		return false
-	}
+func isInGroupFromSession(sess *sessions.Session, group string) bool {
 	raw, _ := sess.Values["groups"].(string)
 	if raw == "" {
 		return false
@@ -295,6 +293,18 @@ func IsInGroup(r *http.Request, group string) bool {
 		}
 	}
 	return false
+}
+
+// IsInGroup reports whether the current request's auth session contains the given group.
+func IsInGroup(r *http.Request, group string) bool {
+	if group == "" {
+		return false
+	}
+	sess, err := getStore().Get(r, sessionName)
+	if err != nil {
+		return false
+	}
+	return isInGroupFromSession(sess, group)
 }
 
 func fetchUserInfo(accessToken string) (*UserInfo, error) {

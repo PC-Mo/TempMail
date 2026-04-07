@@ -2,15 +2,13 @@ version: '3.8'
 
 services:
   tempmail:
-    build: .
+    image: pptag/tempmail:latest   # or build: .
     container_name: tempmail
     restart: unless-stopped
     ports:
-      - "80:80"
       - "25:25"
+      - "127.0.0.1:8080:80"       # bind locally; put a reverse proxy in front
     volumes:
       - ./config.json:/app/config.json
-    environment:
-      - BASE_URL=https://mail.example.com
-      # SESSION_SECRET: 建议通过环境变量注入，不写进 config.json
-      # - SESSION_SECRET=your_secret_here
+    env_file:
+      - .env                       # copy .env.example → .env and fill in values
