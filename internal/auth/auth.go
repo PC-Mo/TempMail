@@ -155,7 +155,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		oauthCfg.IssuerURL,
 		url.QueryEscape(oauthCfg.ClientID),
 		url.QueryEscape(oauthCfg.RedirectURI),
-		url.QueryEscape("openid profile"),
+		url.QueryEscape("openid profile groups"),
 		url.QueryEscape(state),
 		url.QueryEscape(challenge),
 	)
