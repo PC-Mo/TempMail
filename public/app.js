@@ -267,6 +267,7 @@ if (darkToggle) {
   }
 
   const saved = localStorage.getItem('pctag:theme') || 'auto';
+  if (!localStorage.getItem('pctag:theme')) localStorage.setItem('pctag:theme', 'auto');
   applyTheme(saved);
 
   darkToggle.addEventListener('click', () => {
