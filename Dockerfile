@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 FROM alpine:3.19
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata tini
 
 WORKDIR /app
 
@@ -38,10 +38,10 @@ USER appuser
 EXPOSE 80 25
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget -q --no-verbose --tries=1 --spider http://localhost/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD nc -z localhost 80 || exit 1
 
 # Set environment defaults
 ENV PORT=80 SMTP_PORT=25 SMTP_HOST=0.0.0.0
 
-ENTRYPOINT ["./server"]
+ENTRYPOINT ["/sbin/tini", "--", "./server"]
